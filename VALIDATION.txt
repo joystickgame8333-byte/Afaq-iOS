@@ -29,3 +29,10 @@ PASS: Downloaded IPA ZIP integrity, matching bundle ID and build number, bundled
 PASS SHA256: 5985f2e869ad60dfbbff75bddb79f233083368a2a1d6ee41e99a85059cdef470.
 Runtime visual QA for this batch remains for the user's iPhone; no simulator run was requested for this release.
 Latest release: https://github.com/joystickgame8333-byte/Afaq-iOS/releases/tag/preview-3
+
+LATEST RELEASE: preview-4 (build 4).
+PASS: Xcode Release iPhone build and publication, run 42505835206.
+PASS: Downloaded IPA archive integrity, bundle com.omaralasam.afaq, build 4, El Messiri font, Assets.car, and default.metallib containing isolateApprovedGlassIcon.
+PASS SHA256: d4442e3474a6c0ae3f086f402e322a1230f61657c0deda8c0285d5a2818c98a0.
+NOT VERIFIED: This batch's runtime layout, dates, glass effects and icon transparency on a physical iPhone.
+Latest release: https://github.com/joystickgame8333-byte/Afaq-iOS/releases/tag/preview-4
