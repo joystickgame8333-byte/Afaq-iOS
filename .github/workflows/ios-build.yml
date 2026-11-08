@@ -40,6 +40,7 @@ jobs:
           test -f build/package/Payload/Afaq.app/Afaq
           test -f build/package/Payload/Afaq.app/Assets.car
           test -f build/package/Payload/Afaq.app/ElMessiri-Variable.ttf
+          test -f build/package/Payload/Afaq.app/default.metallib
           cd build/package
           zip -qry ../Afaq.ipa Payload
       - name: Build simulator preview
@@ -83,6 +84,10 @@ jobs:
           - أرقام 1234 افتراضيًا، بما فيها تحديث النسخة السابقة.
           - تعديل موضع المدينة والإعدادات بعيدًا عن شريط الحالة.
           - نمطان من الإعدادات ← عرض المواقيت ← زجاج صفوف الصلاة: كل الصلوات، أو الصلاة المحددة.
+          - الرئيسية شاشة واحدة دون تمرير، مع رفع موضع الغروب فوق المواقيت.
+          - أيقونات زجاجية ملوّنة من الصورة المعتمدة نفسها.
+          - تفاصيل الصلاة عند الضغط عليها، وتاريخ هجري وميلادي بجانب المدينة.
+          - معاينة مباشرة في الإعدادات، وضبط حجم الخط والزجاج الخفيف أو الكثيف.
 
           المواقيت والعد التنازلي بيانات عرض ثابتة، بدون حساب أو موقع أو أذان.
           يتطلب iOS 18 أو أحدث. يظهر زجاج النظام الأصلي على iOS 26 أو أحدث.

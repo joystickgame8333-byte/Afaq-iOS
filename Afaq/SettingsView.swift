@@ -7,7 +7,12 @@ struct SettingsView: View {
     var body: some View {
         @Bindable var settings = settings
 
-        Form {
+        VStack(spacing: 0) {
+            AppearancePreviewView()
+                .padding(.horizontal, 16)
+                .padding(.top, 8)
+                .padding(.bottom, 12)
+            Form {
             Section {
                 HStack(spacing: 14) {
                     Image(systemName: "sunset.fill")
@@ -28,6 +33,25 @@ struct SettingsView: View {
                     ScenePickerView()
                 } label: {
                     LabeledContent("أجواء الخلفية", value: settings.mood.title)
+                }
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("وضوح الزجاج")
+                    Picker("وضوح الزجاج", selection: $settings.glassDensity) {
+                        ForEach(GlassDensity.allCases) { density in
+                            Text(density.title).tag(density)
+                        }
+                    }
+                    .pickerStyle(.segmented)
+                }
+                VStack(alignment: .leading, spacing: 8) {
+                    HStack {
+                        Text("حجم خط المواقيت")
+                        Spacer()
+                        Text(settings.digits(String(Int((settings.textScale * 100).rounded()))) + "٪")
+                            .foregroundStyle(.secondary)
+                    }
+                    Slider(value: $settings.textScale, in: 0.85...1.2, step: 0.05)
+                        .accessibilityLabel("حجم خط المواقيت")
                 }
                 VStack(alignment: .leading, spacing: 10) {
                     HStack {
@@ -72,6 +96,7 @@ struct SettingsView: View {
                     showResetConfirmation = true
                 }
             }
+            }
         }
         .navigationTitle("الإعدادات")
         .tint(.orange.opacity(0.9))
@@ -89,18 +114,7 @@ private struct ScenePickerView: View {
     var body: some View {
         ScrollView {
             VStack(spacing: 22) {
-                ZStack(alignment: .bottomTrailing) {
-                    AtmosphereView()
-                    VStack(alignment: .leading, spacing: 5) {
-                        Text("المغرب").font(AfaqFont.title.weight(.medium))
-                        Text(settings.digits("00:24:18"))
-                            .font(AfaqFont.title2.monospacedDigit())
-                    }
-                    .foregroundStyle(.white)
-                    .padding(24)
-                }
-                .frame(height: 320)
-                .clipShape(RoundedRectangle(cornerRadius: 26))
+                AppearancePreviewView()
                 .accessibilityLabel("معاينة أجواء " + settings.mood.title)
 
                 VStack(spacing: 8) {

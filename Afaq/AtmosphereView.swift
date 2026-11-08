@@ -2,16 +2,27 @@ import SwiftUI
 
 struct AtmosphereView: View {
     @Environment(AppearanceSettings.self) private var settings
+    var extendsIntoSafeArea = true
 
     var body: some View {
         GeometryReader { geometry in
             ZStack {
-                Color(red: 0.035, green: 0.055, blue: 0.11)
+                Color.black
                 Image("DesertSunset")
                     .resizable()
                     .scaledToFill()
                     .frame(width: geometry.size.width, height: geometry.size.height)
                     .clipped()
+                    // Put the sunset in the open space above the prayer capsules.
+                    .offset(y: -geometry.size.height * 0.22)
+                    .mask {
+                        LinearGradient(
+                            stops: [.init(color: .white, location: 0),
+                                    .init(color: .white, location: 0.65),
+                                    .init(color: .clear, location: 0.8)],
+                            startPoint: .top, endPoint: .bottom
+                        )
+                    }
 
                 switch settings.mood {
                 case .sunset:
@@ -36,7 +47,7 @@ struct AtmosphereView: View {
                 Color.black.opacity(settings.backgroundDimming)
             }
         }
-        .ignoresSafeArea()
+        .ignoresSafeArea(.container, edges: extendsIntoSafeArea ? .all : [])
         .accessibilityHidden(true)
     }
 }

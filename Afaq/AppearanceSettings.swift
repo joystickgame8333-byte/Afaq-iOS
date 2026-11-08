@@ -31,6 +31,12 @@ enum PrayerGlassStyle: String, CaseIterable, Identifiable {
     }
 }
 
+enum GlassDensity: String, CaseIterable, Identifiable {
+    case light, dense
+    var id: String { rawValue }
+    var title: String { self == .light ? "خفيف" : "كثيف" }
+}
+
 @MainActor @Observable
 final class AppearanceSettings {
     @ObservationIgnored private let defaults: UserDefaults
@@ -38,6 +44,12 @@ final class AppearanceSettings {
     var mood: SceneMood { didSet { defaults.set(mood.rawValue, forKey: "appearance.mood") } }
     var prayerGlassStyle: PrayerGlassStyle {
         didSet { defaults.set(prayerGlassStyle.rawValue, forKey: "appearance.prayerGlassStyle") }
+    }
+    var glassDensity: GlassDensity {
+        didSet { defaults.set(glassDensity.rawValue, forKey: "appearance.glassDensity") }
+    }
+    var textScale: Double {
+        didSet { defaults.set(textScale, forKey: "appearance.textScale") }
     }
     var arabicDigits: Bool { didSet { defaults.set(arabicDigits, forKey: "appearance.arabicDigits") } }
     var use24HourClock: Bool { didSet { defaults.set(use24HourClock, forKey: "appearance.24Hour") } }
@@ -50,6 +62,8 @@ final class AppearanceSettings {
         let hasLatinDigitsDefault = defaults.bool(forKey: "appearance.latinDigitsDefaultV1")
         mood = SceneMood(rawValue: defaults.string(forKey: "appearance.mood") ?? "") ?? .sunset
         prayerGlassStyle = PrayerGlassStyle(rawValue: defaults.string(forKey: "appearance.prayerGlassStyle") ?? "") ?? .individual
+        glassDensity = GlassDensity(rawValue: defaults.string(forKey: "appearance.glassDensity") ?? "") ?? .dense
+        textScale = min(1.2, max(0.85, defaults.object(forKey: "appearance.textScale") as? Double ?? 1))
         arabicDigits = hasLatinDigitsDefault
             ? (defaults.object(forKey: "appearance.arabicDigits") as? Bool ?? false)
             : false
@@ -68,6 +82,8 @@ final class AppearanceSettings {
     func reset() {
         mood = .sunset
         prayerGlassStyle = .individual
+        glassDensity = .dense
+        textScale = 1
         arabicDigits = false
         use24HourClock = false
         showSeconds = true
@@ -76,11 +92,10 @@ final class AppearanceSettings {
     }
 
     func digits(_ value: String) -> String {
-        guard arabicDigits else { return value }
         let arabic = Array("٠١٢٣٤٥٦٧٨٩")
         return String(value.map { character in
             guard let number = character.wholeNumberValue, (0...9).contains(number) else { return character }
-            return arabic[number]
+            return arabicDigits ? arabic[number] : Character(String(number))
         })
     }
 

@@ -2,12 +2,13 @@ import SwiftUI
 
 struct HomeView: View {
     @Environment(AppearanceSettings.self) private var settings
-    @Environment(\.dynamicTypeSize) private var typeSize
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var selectedPrayerID = "maghrib"
+    @State private var presentedPrayer: PreviewPrayer?
     @Namespace private var prayerGlassNamespace
     @ScaledMetric(relativeTo: .largeTitle) private var prayerNameSize = 58
     @ScaledMetric(relativeTo: .largeTitle) private var countdownSize = 62
+    @ScaledMetric(relativeTo: .body) private var rowTextSize = 17
     let openSettings: () -> Void
 
     private var prayers: [PreviewPrayer] {
@@ -16,25 +17,24 @@ struct HomeView: View {
 
     var body: some View {
         GeometryReader { geometry in
-            ScrollView {
-                    VStack(spacing: 0) {
-                        hero
-                            .padding(.top, 28)
-                        // Keep the horizon visible, while allowing accessibility sizes to scroll.
-                        Color.clear.frame(height: typeSize.isAccessibilitySize ? 32 : max(32, geometry.size.height * 0.14))
-                        schedule
-                        Text("معاينة التصميم · مواقيت توضيحية")
-                            .font(AfaqFont.caption2)
-                            .foregroundStyle(.white.opacity(0.65))
-                            .padding(.top, 18)
-                            .padding(.bottom, 24)
-                    }
-                    .padding(.horizontal, 24)
-                    .padding(.top, 12)
-                    .frame(maxWidth: 600)
-                    .frame(maxWidth: .infinity)
+            let metrics = HomeLayoutMetrics(height: max(1, geometry.size.height - 16), prayerCount: prayers.count)
+            VStack(spacing: 0) {
+                hero(height: metrics.heroHeight)
+                    .frame(height: metrics.heroHeight)
+                Spacer(minLength: 0)
+                schedule(metrics: metrics)
+                Text("معاينة التصميم · مواقيت توضيحية")
+                    .font(AfaqFont.caption2)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.8)
+                    .foregroundStyle(.white.opacity(0.65))
+                    .frame(height: 30, alignment: .bottom)
             }
-            .scrollIndicators(.hidden)
+            .frame(maxWidth: 600, maxHeight: .infinity)
+            .frame(maxWidth: .infinity)
+            .padding(.horizontal, 24)
+            .padding(.vertical, 8)
+            .frame(width: geometry.size.width, height: geometry.size.height)
             // Extend only the backdrop under system chrome; keep content in the safe area.
             .background { AtmosphereView() }
             .foregroundStyle(.white)
@@ -44,10 +44,7 @@ struct HomeView: View {
         .toolbarColorScheme(.dark, for: .navigationBar)
         .toolbar {
             ToolbarItem(placement: .topBarLeading) {
-                Label("الرياض", systemImage: "mappin.and.ellipse")
-                    .font(AfaqFont.subheadline.weight(.medium))
-                    .foregroundStyle(.white)
-                    .accessibilityLabel("مدينة العرض التجريبي: الرياض")
+                DateLocationHeader()
             }
             ToolbarItem(placement: .topBarTrailing) {
                 Button("فتح الإعدادات", systemImage: "gearshape", action: openSettings)
@@ -59,24 +56,33 @@ struct HomeView: View {
                 selectedPrayerID = "maghrib"
             }
         }
+        .sheet(item: $presentedPrayer) { prayer in
+            PrayerDetailView(prayer: prayer)
+                .presentationDetents([.height(390), .large])
+                .presentationDragIndicator(.visible)
+                .presentationBackground(.clear)
+        }
     }
 
-    private var hero: some View {
-        VStack(spacing: 13) {
+    private func hero(height: CGFloat) -> some View {
+        VStack(spacing: min(6, height * 0.02)) {
             Text("الصلاة القادمة")
-                .font(AfaqFont.subheadline)
+                .font(AfaqFont.hero(size: min(15, height * 0.07)))
+                .lineLimit(1)
                 .foregroundStyle(.white.opacity(0.75))
             Text("المغرب")
-                .font(AfaqFont.hero(size: prayerNameSize, weight: .medium))
+                .font(AfaqFont.hero(size: min(prayerNameSize * settings.textScale, height * 0.22), weight: .medium))
                 .minimumScaleFactor(0.65)
                 .lineLimit(1)
             ViewThatFits(in: .horizontal) {
-                countdown(size: countdownSize)
-                countdown(size: countdownSize * 0.74)
+                countdown(size: min(countdownSize * settings.textScale, height * 0.24))
+                countdown(size: min(countdownSize * settings.textScale, height * 0.24) * 0.74)
             }
             .accessibilityLabel(settings.showSeconds ? "عد تنازلي توضيحي: 24 دقيقة و18 ثانية" : "عد تنازلي توضيحي: 24 دقيقة")
             Text("حتى الأذان · " + settings.time(hour: 17, minute: 12))
-                .font(AfaqFont.subheadline)
+                .font(AfaqFont.hero(size: min(15, height * 0.07)))
+                .lineLimit(1)
+                .minimumScaleFactor(0.8)
                 .foregroundStyle(.white.opacity(0.76))
         }
         .frame(maxWidth: .infinity)
@@ -91,26 +97,32 @@ struct HomeView: View {
             .lineLimit(1)
     }
 
-    @ViewBuilder private var schedule: some View {
+    @ViewBuilder private func schedule(metrics: HomeLayoutMetrics) -> some View {
         if #available(iOS 26.0, *) {
             // Keep independent capsules separated while sharing one glass rendering container.
-            GlassEffectContainer(spacing: 6) {
-                prayerRows
+            GlassEffectContainer(spacing: 4) {
+                prayerRows(metrics: metrics)
             }
         } else {
-            prayerRows
+            prayerRows(metrics: metrics)
         }
     }
 
-    private var prayerRows: some View {
-        VStack(spacing: 10) {
+    private func prayerRows(metrics: HomeLayoutMetrics) -> some View {
+        VStack(spacing: metrics.rowSpacing) {
             ForEach(prayers) { prayer in
                 Button {
                     withAnimation(reduceMotion ? nil : .spring(response: 0.42, dampingFraction: 0.82)) {
                         selectedPrayerID = prayer.id
                     }
+                    presentedPrayer = prayer
                 } label: {
-                    PrayerRow(prayer: prayer, isSelected: selectedPrayerID == prayer.id)
+                    PrayerRow(
+                        prayer: prayer,
+                        isSelected: selectedPrayerID == prayer.id,
+                        height: metrics.rowHeight,
+                        fontSize: min(rowTextSize * settings.textScale, metrics.rowHeight * 0.5)
+                    )
                         .modifier(PrayerGlassSurface(
                             style: settings.prayerGlassStyle,
                             isSelected: selectedPrayerID == prayer.id,
@@ -120,42 +132,57 @@ struct HomeView: View {
                 }
                 .buttonStyle(.plain)
                 .accessibilityAddTraits(selectedPrayerID == prayer.id ? .isSelected : [])
-                .accessibilityHint("تحديد " + prayer.name)
+                .accessibilityHint("عرض تفاصيل " + prayer.name)
             }
         }
     }
 }
 
-private struct PrayerRow: View {
+struct PrayerRow: View {
     @Environment(AppearanceSettings.self) private var settings
     let prayer: PreviewPrayer
     let isSelected: Bool
+    let height: CGFloat
+    let fontSize: CGFloat
 
     var body: some View {
         HStack(spacing: 12) {
-            Image(systemName: prayer.symbol)
-                .font(.subheadline)
-                .foregroundStyle(.white.opacity(isSelected || prayer.isNext ? 0.95 : 0.68))
-                .frame(width: 22)
-                .accessibilityHidden(true)
+            PrayerIconView(prayer: prayer)
             Text(prayer.name)
-                .font(AfaqFont.body.weight(prayer.isNext ? .semibold : .regular))
+                .font(AfaqFont.hero(size: fontSize, weight: prayer.isNext ? .semibold : .regular))
+                .lineLimit(1)
+                .minimumScaleFactor(0.8)
             Spacer(minLength: 12)
             Text(settings.time(hour: prayer.hour, minute: prayer.minute))
-                .font(AfaqFont.body)
+                .font(AfaqFont.hero(size: fontSize))
                 .monospacedDigit()
                 .fixedSize(horizontal: true, vertical: false)
         }
         .padding(.horizontal, 18)
-        .padding(.vertical, 12)
-        .frame(maxWidth: .infinity, minHeight: 52)
+        .frame(maxWidth: .infinity)
+        .frame(height: height)
         .contentShape(Capsule())
         .accessibilityElement(children: .combine)
         .accessibilityValue(prayer.isNext ? "الصلاة القادمة" : "")
     }
 }
 
-private struct PrayerGlassSurface: ViewModifier {
+private struct HomeLayoutMetrics {
+    let rowHeight: CGFloat
+    let rowSpacing: CGFloat
+    let heroHeight: CGFloat
+
+    init(height: CGFloat, prayerCount: Int) {
+        rowHeight = min(52, max(44, height * 0.074))
+        rowSpacing = min(10, max(6, height * 0.012))
+        let scheduleHeight = CGFloat(prayerCount) * rowHeight + CGFloat(max(0, prayerCount - 1)) * rowSpacing
+        // Reserve room for all prayers and the footer before sizing the hero.
+        heroHeight = min(260, max(100, (height - scheduleHeight - 30) * 0.88))
+    }
+}
+
+struct PrayerGlassSurface: ViewModifier {
+    @Environment(AppearanceSettings.self) private var settings
     @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
     let style: PrayerGlassStyle
     let isSelected: Bool
@@ -171,13 +198,14 @@ private struct PrayerGlassSurface: ViewModifier {
             } else if #available(iOS 26.0, *) {
                 content
                     .glassEffect(
-                        .regular.tint(.white.opacity(isSelected ? 0.14 : 0.025)).interactive(),
+                        (settings.glassDensity == .light ? Glass.clear : Glass.regular)
+                            .tint(.white.opacity(isSelected ? 0.14 : 0.025)).interactive(),
                         in: .capsule
                     )
                     .glassEffectID(style == .selection ? "selected-prayer" : prayerID, in: namespace)
             } else {
                 content
-                    .background(.regularMaterial, in: Capsule())
+                    .background(settings.glassDensity == .light ? Material.ultraThin : Material.regular, in: Capsule())
                     .overlay {
                         Capsule().strokeBorder(.white.opacity(isSelected ? 0.3 : 0.12), lineWidth: 0.5)
                     }
