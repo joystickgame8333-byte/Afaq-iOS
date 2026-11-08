@@ -1,0 +1,90 @@
+name: Build and publish Afaq iPhone preview
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: afaq-preview-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  iphone-preview:
+    runs-on: macos-26
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - name: Show toolchain and prepare assets
+        run: |
+          set -euo pipefail
+          xcodebuild -version
+          bash tools/prepare-assets.sh
+      - name: Build iPhone package
+        run: |
+          set -euo pipefail
+          xcodebuild -project Afaq.xcodeproj -scheme Afaq \
+            -configuration Release -destination 'generic/platform=iOS' \
+            -derivedDataPath build/device CURRENT_PROJECT_VERSION="$GITHUB_RUN_NUMBER" \
+            CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO CODE_SIGN_IDENTITY="" \
+            build > device-build.log 2>&1 || { tail -n 100 device-build.log; exit 1; }
+          mkdir -p build/package/Payload
+          cp -R build/device/Build/Products/Release-iphoneos/Afaq.app build/package/Payload/
+          test -f build/package/Payload/Afaq.app/Afaq
+          test -f build/package/Payload/Afaq.app/Assets.car
+          cd build/package
+          zip -qry ../Afaq.ipa Payload
+      - name: Build simulator preview
+        run: |
+          set -euo pipefail
+          SIMULATOR_ID=$(xcrun simctl list devices available -j | python3 -c 'import json,sys; devices=json.load(sys.stdin)["devices"]; print(next(d["udid"] for rows in devices.values() for d in rows if "iPhone" in d["name"]))')
+          echo "SIMULATOR_ID=$SIMULATOR_ID" >> "$GITHUB_ENV"
+          xcodebuild -project Afaq.xcodeproj -scheme Afaq \
+            -configuration Debug -destination "platform=iOS Simulator,id=$SIMULATOR_ID" \
+            -derivedDataPath build/simulator CODE_SIGNING_ALLOWED=NO \
+            build > simulator-build.log 2>&1 || { tail -n 100 simulator-build.log; exit 1; }
+      - name: Launch and capture native screens
+        run: |
+          set -euo pipefail
+          xcrun simctl boot "$SIMULATOR_ID" || true
+          xcrun simctl bootstatus "$SIMULATOR_ID" -b
+          xcrun simctl status_bar "$SIMULATOR_ID" override --time '9:41' --batteryState charged --batteryLevel 100
+          xcrun simctl install "$SIMULATOR_ID" build/simulator/Build/Products/Debug-iphonesimulator/Afaq.app
+          xcrun simctl launch "$SIMULATOR_ID" com.omaralasam.afaq
+          sleep 5
+          xcrun simctl io "$SIMULATOR_ID" screenshot build/Afaq-home.png
+          xcrun simctl terminate "$SIMULATOR_ID" com.omaralasam.afaq
+          xcrun simctl launch "$SIMULATOR_ID" com.omaralasam.afaq --preview-settings
+          sleep 3
+          xcrun simctl io "$SIMULATOR_ID" screenshot build/Afaq-settings.png
+      - name: Publish downloadable preview
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          TAG="preview-$GITHUB_RUN_NUMBER"
+          cat > build/release-notes.md <<'NOTES'
+          نسخة أفق الأولية — الواجهة والإعدادات فقط.
+
+          المواقيت والعد التنازلي بيانات عرض ثابتة، بدون حساب أو موقع أو أذان.
+          يتطلب iOS 18 أو أحدث. يظهر زجاج النظام الأصلي على iOS 26 أو أحدث.
+
+          Afaq.ipa ملف iPhone غير موقع، للتثبيت باستخدام طريقة التوقيع أو التثبيت الجانبي المعتادة لديك. ليس رابط TestFlight ولا يثبت بمجرد فتحه في Safari.
+          صور Afaq-home.png وAfaq-settings.png مأخوذة من تشغيل التطبيق الأصلي داخل محاكي iPhone.
+          NOTES
+          gh release create "$TAG" build/Afaq.ipa build/Afaq-home.png build/Afaq-settings.png \
+            --target "$GITHUB_SHA" --title "أفق — تجربة الواجهة $GITHUB_RUN_NUMBER" \
+            --notes-file build/release-notes.md --prerelease
+      - name: Upload build diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: Afaq-build-diagnostics
+          path: |
+            device-build.log
+            simulator-build.log
+            build/Afaq-home.png
+            build/Afaq-settings.png
+          if-no-files-found: ignore

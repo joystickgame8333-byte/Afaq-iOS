@@ -1,0 +1,15 @@
+PASS Swift syntax parser: AfaqApp.swift
+PASS Swift syntax parser: AppearanceSettings.swift
+PASS Swift syntax parser: AppRootView.swift
+PASS Swift syntax parser: AtmosphereView.swift
+PASS Swift syntax parser: HomeView.swift
+PASS Swift syntax parser: PreviewSchedule.swift
+PASS Swift syntax parser: SettingsView.swift
+PASS JSON and asset references: Afaq\Assets.xcassets\Contents.json
+PASS JSON and asset references: Afaq\Assets.xcassets\DesertSunset.imageset\Contents.json
+PASS OpenStep project structure and target references
+PASS Shared scheme XML and target references
+PASS GitHub workflow YAML
+PASS Bundled background PNG: 851 x 1848
+PASS Scope: fixed fixtures; no location, networking, notification or timer services
+NOT RUN: Xcode compiler, simulator, runtime screenshots, signing or GitHub workflow (Windows host; xcrun unavailable)
