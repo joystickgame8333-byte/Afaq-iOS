@@ -13,4 +13,12 @@ PASS Shared scheme XML and target references
 PASS GitHub workflow YAML
 PASS Bundled background PNG: 851 x 1848
 PASS Scope: fixed fixtures; no location, networking, notification or timer services
-NOT RUN: Xcode compiler, simulator, runtime screenshots, signing or GitHub workflow (Windows host; xcrun unavailable)
+LOCAL LIMITATION: Xcode is unavailable on the Windows host.
+PASS CLOUD: Release iPhone and Debug simulator Xcode builds succeeded in GitHub Actions.
+PASS CLOUD: iPhone IPA build and publication completed successfully in run 42501421178.
+PASS DOWNLOAD: Published Afaq.ipa downloaded and verified; ZIP integrity, arm64 executable, bundled Assets.car, bundle com.omaralasam.afaq, iOS 18.0 minimum, build 2.
+PASS HASH: Published asset SHA256 matches the downloaded file: 65090e570e6dcd821992f35b81c2862caf4e8c200207e386aea243b64ad4dd01.
+NOT VERIFIED: Runtime visual QA and physical iPhone installation. Simulator startup stalled; no runtime screenshots are claimed.
+SIGNING: IPA is unsigned. It requires a compatible signing or sideloading method.
+Release: https://github.com/joystickgame8333-byte/Afaq-iOS/releases/tag/preview-2
+Successful build: https://github.com/joystickgame8333-byte/Afaq-iOS/actions/runs/42501421178
