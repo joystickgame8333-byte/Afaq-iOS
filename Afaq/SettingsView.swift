@@ -16,8 +16,8 @@ struct SettingsView: View {
                         .frame(width: 56, height: 56)
                         .background(.white.opacity(0.06), in: RoundedRectangle(cornerRadius: 17))
                     VStack(alignment: .leading, spacing: 4) {
-                        Text("أفق").font(.title3.weight(.semibold))
-                        Text("مساحة هادئة ليومك").font(.subheadline).foregroundStyle(.secondary)
+                        Text("أفق").font(AfaqFont.title3.weight(.semibold))
+                        Text("مساحة هادئة ليومك").font(AfaqFont.subheadline).foregroundStyle(.secondary)
                     }
                 }
                 .padding(.vertical, 7)
@@ -44,8 +44,13 @@ struct SettingsView: View {
             }
 
             Section("عرض المواقيت") {
+                Picker("زجاج صفوف الصلاة", selection: $settings.prayerGlassStyle) {
+                    ForEach(PrayerGlassStyle.allCases) { style in
+                        Text(style.title).tag(style)
+                    }
+                }
                 Toggle("الأرقام العربية", isOn: $settings.arabicDigits)
-                Toggle("نظام ٢٤ ساعة", isOn: $settings.use24HourClock)
+                Toggle("نظام 24 ساعة", isOn: $settings.use24HourClock)
                 Toggle("إظهار ثواني العد التنازلي", isOn: $settings.showSeconds)
                 Toggle("إظهار الشروق", isOn: $settings.showSunrise)
             }
@@ -87,9 +92,9 @@ private struct ScenePickerView: View {
                 ZStack(alignment: .bottomTrailing) {
                     AtmosphereView()
                     VStack(alignment: .leading, spacing: 5) {
-                        Text("المغرب").font(.title.weight(.medium))
+                        Text("المغرب").font(AfaqFont.title.weight(.medium))
                         Text(settings.digits("00:24:18"))
-                            .font(.title2.monospacedDigit())
+                            .font(AfaqFont.title2.monospacedDigit())
                     }
                     .foregroundStyle(.white)
                     .padding(24)
@@ -132,7 +137,7 @@ private struct AboutView: View {
     var body: some View {
         Form {
             Section {
-                Text("أفق").font(.largeTitle.weight(.medium))
+                Text("أفق").font(AfaqFont.largeTitle.weight(.medium))
                 Text("واجهة عربية لمواقيت الصلاة، مستوحاة من هدوء الأفق وتغيّر الضوء.")
             }
             Section("نسخة التصميم") {

@@ -20,11 +20,25 @@ enum SceneMood: String, CaseIterable, Identifiable {
     }
 }
 
+enum PrayerGlassStyle: String, CaseIterable, Identifiable {
+    case individual, selection
+    var id: String { rawValue }
+    var title: String {
+        switch self {
+        case .individual: "كل الصلوات"
+        case .selection: "الصلاة المحددة"
+        }
+    }
+}
+
 @MainActor @Observable
 final class AppearanceSettings {
     @ObservationIgnored private let defaults: UserDefaults
 
     var mood: SceneMood { didSet { defaults.set(mood.rawValue, forKey: "appearance.mood") } }
+    var prayerGlassStyle: PrayerGlassStyle {
+        didSet { defaults.set(prayerGlassStyle.rawValue, forKey: "appearance.prayerGlassStyle") }
+    }
     var arabicDigits: Bool { didSet { defaults.set(arabicDigits, forKey: "appearance.arabicDigits") } }
     var use24HourClock: Bool { didSet { defaults.set(use24HourClock, forKey: "appearance.24Hour") } }
     var showSeconds: Bool { didSet { defaults.set(showSeconds, forKey: "appearance.seconds") } }
@@ -33,17 +47,28 @@ final class AppearanceSettings {
 
     init(defaults: UserDefaults = .standard) {
         self.defaults = defaults
+        let hasLatinDigitsDefault = defaults.bool(forKey: "appearance.latinDigitsDefaultV1")
         mood = SceneMood(rawValue: defaults.string(forKey: "appearance.mood") ?? "") ?? .sunset
-        arabicDigits = defaults.object(forKey: "appearance.arabicDigits") as? Bool ?? true
+        prayerGlassStyle = PrayerGlassStyle(rawValue: defaults.string(forKey: "appearance.prayerGlassStyle") ?? "") ?? .individual
+        arabicDigits = hasLatinDigitsDefault
+            ? (defaults.object(forKey: "appearance.arabicDigits") as? Bool ?? false)
+            : false
         use24HourClock = defaults.object(forKey: "appearance.24Hour") as? Bool ?? false
         showSeconds = defaults.object(forKey: "appearance.seconds") as? Bool ?? true
         showSunrise = defaults.object(forKey: "appearance.sunrise") as? Bool ?? true
         backgroundDimming = min(max(defaults.object(forKey: "appearance.dimming") as? Double ?? 0.15, 0), 0.65)
+        // Apply the requested 1234 style once for both existing and new installations.
+        // Subsequent user choices remain persistent.
+        if !hasLatinDigitsDefault {
+            defaults.set(false, forKey: "appearance.arabicDigits")
+            defaults.set(true, forKey: "appearance.latinDigitsDefaultV1")
+        }
     }
 
     func reset() {
         mood = .sunset
-        arabicDigits = true
+        prayerGlassStyle = .individual
+        arabicDigits = false
         use24HourClock = false
         showSeconds = true
         showSunrise = true

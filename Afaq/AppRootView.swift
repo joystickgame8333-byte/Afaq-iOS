@@ -7,7 +7,9 @@ struct AppRootView: View {
 
     var body: some View {
         TabView(selection: $tab) {
-            HomeView { tab = .settings }
+            NavigationStack {
+                HomeView { tab = .settings }
+            }
                 .tabItem { Label("اليوم", systemImage: "sun.horizon") }
                 .tag(AppTab.today)
 
@@ -26,8 +28,10 @@ struct AppRootView: View {
 }
 
 #Preview("أفق — الرئيسية") {
+    let _ = AfaqFont.register()
     AppRootView()
         .environment(AppearanceSettings(defaults: UserDefaults(suiteName: "Afaq.Preview")!))
         .environment(\.layoutDirection, .rightToLeft)
         .preferredColorScheme(.dark)
+        .font(AfaqFont.body)
 }

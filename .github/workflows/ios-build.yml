@@ -39,6 +39,7 @@ jobs:
           cp -R build/device/Build/Products/Release-iphoneos/Afaq.app build/package/Payload/
           test -f build/package/Payload/Afaq.app/Afaq
           test -f build/package/Payload/Afaq.app/Assets.car
+          test -f build/package/Payload/Afaq.app/ElMessiri-Variable.ttf
           cd build/package
           zip -qry ../Afaq.ipa Payload
       - name: Build simulator preview
@@ -76,6 +77,12 @@ jobs:
           TAG="preview-$GITHUB_RUN_NUMBER"
           cat > build/release-notes.md <<'NOTES'
           نسخة أفق الأولية — الواجهة والإعدادات فقط.
+
+          دفعة تحديث الواجهة:
+          - خط المسيري للعناوين والمواقيت والإعدادات.
+          - أرقام 1234 افتراضيًا، بما فيها تحديث النسخة السابقة.
+          - تعديل موضع المدينة والإعدادات بعيدًا عن شريط الحالة.
+          - نمطان من الإعدادات ← عرض المواقيت ← زجاج صفوف الصلاة: كل الصلوات، أو الصلاة المحددة.
 
           المواقيت والعد التنازلي بيانات عرض ثابتة، بدون حساب أو موقع أو أذان.
           يتطلب iOS 18 أو أحدث. يظهر زجاج النظام الأصلي على iOS 26 أو أحدث.
