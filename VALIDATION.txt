@@ -43,3 +43,11 @@ PASS: Downloaded IPA ZIP integrity, bundle com.omaralasam.afaq, build 5, minimum
 PASS SHA256: 5b5694eea5f8ae4e5d482d0f771e3bc126786e893c78264ee62e7d45e2b95f8b.
 NOT VERIFIED: Runtime visual layout and automatic daylight transition on a physical iPhone.
 Latest release: https://github.com/joystickgame8333-byte/Afaq-iOS/releases/tag/preview-5
+
+LATEST RELEASE: preview-6 (build 6), source 4cbaa9d.
+PASS: Swift 6 executable engine tests on macOS: reference times; 366 days x 125 cities; DST; leap day; sunrise exclusion; Isha/midnight/year rollover; countdown; invalid payload rejection.
+PASS: Xcode Release iPhone build and publication, run 42510828438.
+PASS: Published IPA downloaded; ZIP integrity, bundle com.omaralasam.afaq, build 6, minimum iOS 18, WhenInUse permission description, original 366-day calendar JSON, El Messiri, Assets.car, and approved glass icon shader.
+PASS SHA256: ca2cd9219c0d363a8f1c3025ad25aab61c5fa00da54e84cabfdc743db0a4beee.
+NOT VERIFIED: Physical iPhone UI, location permission flow and live location. No simulator runtime was performed for this batch.
+Release: https://github.com/joystickgame8333-byte/Afaq-iOS/releases/tag/preview-6

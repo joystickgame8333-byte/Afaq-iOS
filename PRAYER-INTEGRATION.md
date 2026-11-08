@@ -26,3 +26,5 @@
 مراجع النظام: [صلاحية الموقع أثناء الاستخدام](https://developer.apple.com/documentation/corelocation/cllocationmanager/requestwheninuseauthorization())، [فرق التوقيت الصيفي](https://developer.apple.com/documentation/foundation/timezone/daylightsavingtimeoffset(for:)).
 
 لم تُجر تجربة الموقع أو الواجهة على آيفون فعلي في هذه البيئة. تُسجّل نتيجة البناء والاختبارات في VALIDATION.txt بعد اكتمال البناء.
+
+اكتمل التحقق: نجحت اختبارات 366 يومًا × 125 مدينة وبناء Xcode في التشغيل 42510828438. نُشرت preview-6، ونُزّل IPA وفُحص التقويم المضمّن وصلاحية الموقع ومعرّف الحزمة والخط ومكتبة الأيقونات ومطابقة SHA256.
