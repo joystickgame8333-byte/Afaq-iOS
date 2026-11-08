@@ -6,6 +6,7 @@ PASS Swift syntax parser: HomeView.swift
 PASS Swift syntax parser: PreviewSchedule.swift
 PASS Swift syntax parser: SettingsView.swift
 PASS JSON and asset references: Afaq\Assets.xcassets\Contents.json
+PASS JSON and asset references: Afaq\Assets.xcassets\AppIcon.appiconset\Contents.json
 PASS JSON and asset references: Afaq\Assets.xcassets\DesertSunset.imageset\Contents.json
 PASS OpenStep project structure and target references
 PASS Shared scheme XML and target references

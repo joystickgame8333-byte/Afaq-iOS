@@ -3,6 +3,11 @@ on:
   push:
     branches: [main]
   workflow_dispatch:
+    inputs:
+      capture_preview:
+        description: Launch simulator and attach native screenshots
+        type: boolean
+        default: false
 
 permissions:
   contents: write
@@ -37,6 +42,7 @@ jobs:
           cd build/package
           zip -qry ../Afaq.ipa Payload
       - name: Build simulator preview
+        if: ${{ github.event_name == 'workflow_dispatch' && inputs.capture_preview }}
         run: |
           set -euo pipefail
           SIMULATOR_ID=$(xcrun simctl list devices available -j | python3 -c 'import json,sys; devices=json.load(sys.stdin)["devices"]; print(next(d["udid"] for rows in devices.values() for d in rows if "iPhone" in d["name"]))')
@@ -46,6 +52,9 @@ jobs:
             -derivedDataPath build/simulator CODE_SIGNING_ALLOWED=NO \
             build > simulator-build.log 2>&1 || { tail -n 100 simulator-build.log; exit 1; }
       - name: Launch and capture native screens
+        if: ${{ github.event_name == 'workflow_dispatch' && inputs.capture_preview }}
+        timeout-minutes: 4
+        continue-on-error: true
         run: |
           set -euo pipefail
           xcrun simctl boot "$SIMULATOR_ID" || true
@@ -72,11 +81,13 @@ jobs:
           يتطلب iOS 18 أو أحدث. يظهر زجاج النظام الأصلي على iOS 26 أو أحدث.
 
           Afaq.ipa ملف iPhone غير موقع، للتثبيت باستخدام طريقة التوقيع أو التثبيت الجانبي المعتادة لديك. ليس رابط TestFlight ولا يثبت بمجرد فتحه في Safari.
-          صور Afaq-home.png وAfaq-settings.png مأخوذة من تشغيل التطبيق الأصلي داخل محاكي iPhone.
           NOTES
-          gh release create "$TAG" build/Afaq.ipa build/Afaq-home.png build/Afaq-settings.png \
+          gh release create "$TAG" build/Afaq.ipa \
             --target "$GITHUB_SHA" --title "أفق — تجربة الواجهة $GITHUB_RUN_NUMBER" \
             --notes-file build/release-notes.md --prerelease
+          if [ -f build/Afaq-home.png ] && [ -f build/Afaq-settings.png ]; then
+            gh release upload "$TAG" build/Afaq-home.png build/Afaq-settings.png
+          fi
       - name: Upload build diagnostics
         if: always()
         uses: actions/upload-artifact@v4
