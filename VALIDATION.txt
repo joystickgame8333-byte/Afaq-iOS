@@ -36,3 +36,10 @@ PASS: Downloaded IPA archive integrity, bundle com.omaralasam.afaq, build 4, El 
 PASS SHA256: d4442e3474a6c0ae3f086f402e322a1230f61657c0deda8c0285d5a2818c98a0.
 NOT VERIFIED: This batch's runtime layout, dates, glass effects and icon transparency on a physical iPhone.
 Latest release: https://github.com/joystickgame8333-byte/Afaq-iOS/releases/tag/preview-4
+
+LATEST RELEASE: preview-5 (build 5).
+PASS: Xcode Release iPhone build and publication, run 42509832918, source e01d4eee4749e7547a6de82e6a5d1a7451f8e9e2.
+PASS: Downloaded IPA ZIP integrity, bundle com.omaralasam.afaq, build 5, minimum iOS 18.0, El Messiri font, Assets.car and default.metallib containing isolateApprovedGlassIcon.
+PASS SHA256: 5b5694eea5f8ae4e5d482d0f771e3bc126786e893c78264ee62e7d45e2b95f8b.
+NOT VERIFIED: Runtime visual layout and automatic daylight transition on a physical iPhone.
+Latest release: https://github.com/joystickgame8333-byte/Afaq-iOS/releases/tag/preview-5
