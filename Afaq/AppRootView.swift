@@ -8,7 +8,7 @@ struct AppRootView: View {
     var body: some View {
         TabView(selection: $tab) {
             NavigationStack {
-                HomeView { tab = .settings }
+                HomeView()
             }
                 .tabItem { Label("اليوم", systemImage: "sun.horizon") }
                 .tag(AppTab.today)

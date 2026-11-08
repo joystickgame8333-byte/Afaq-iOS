@@ -42,8 +42,7 @@ struct AppearancePreviewView: View {
                         selectedPrayerID = prayer.id
                     }
                 } label: {
-                    PrayerRow(prayer: prayer, isSelected: selectedPrayerID == prayer.id, height: 44, fontSize: 16 * settings.textScale)
-                        .modifier(PrayerGlassSurface(style: settings.prayerGlassStyle, isSelected: selectedPrayerID == prayer.id, prayerID: prayer.id, namespace: namespace))
+                    PrayerRow(prayer: prayer, isSelected: selectedPrayerID == prayer.id, height: 44, fontSize: 16 * settings.textScale, namespace: namespace)
                 }
                 .buttonStyle(.plain)
                 .accessibilityAddTraits(selectedPrayerID == prayer.id ? .isSelected : [])

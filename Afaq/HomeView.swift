@@ -4,12 +4,10 @@ struct HomeView: View {
     @Environment(AppearanceSettings.self) private var settings
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var selectedPrayerID = "maghrib"
-    @State private var presentedPrayer: PreviewPrayer?
     @Namespace private var prayerGlassNamespace
     @ScaledMetric(relativeTo: .largeTitle) private var prayerNameSize = 58
     @ScaledMetric(relativeTo: .largeTitle) private var countdownSize = 62
     @ScaledMetric(relativeTo: .body) private var rowTextSize = 17
-    let openSettings: () -> Void
 
     private var prayers: [PreviewPrayer] {
         PreviewPrayer.day.filter { settings.showSunrise || $0.id != "sunrise" }
@@ -23,12 +21,6 @@ struct HomeView: View {
                     .frame(height: metrics.heroHeight)
                 Spacer(minLength: 0)
                 schedule(metrics: metrics)
-                Text("معاينة التصميم · مواقيت توضيحية")
-                    .font(AfaqFont.caption2)
-                    .lineLimit(1)
-                    .minimumScaleFactor(0.8)
-                    .foregroundStyle(.white.opacity(0.65))
-                    .frame(height: 30, alignment: .bottom)
             }
             .frame(maxWidth: 600, maxHeight: .infinity)
             .frame(maxWidth: .infinity)
@@ -39,28 +31,11 @@ struct HomeView: View {
             .background { AtmosphereView() }
             .foregroundStyle(.white)
         }
-        .navigationBarTitleDisplayMode(.inline)
-        .toolbarBackground(.hidden, for: .navigationBar)
-        .toolbarColorScheme(.dark, for: .navigationBar)
-        .toolbar {
-            ToolbarItem(placement: .topBarLeading) {
-                DateLocationHeader()
-            }
-            ToolbarItem(placement: .topBarTrailing) {
-                Button("فتح الإعدادات", systemImage: "gearshape", action: openSettings)
-                    .labelStyle(.iconOnly)
-            }
-        }
+        .toolbar(.hidden, for: .navigationBar)
         .onChange(of: settings.showSunrise) { _, isVisible in
             if !isVisible && selectedPrayerID == "sunrise" {
                 selectedPrayerID = "maghrib"
             }
-        }
-        .sheet(item: $presentedPrayer) { prayer in
-            PrayerDetailView(prayer: prayer)
-                .presentationDetents([.height(390), .large])
-                .presentationDragIndicator(.visible)
-                .presentationBackground(.clear)
         }
     }
 
@@ -115,24 +90,18 @@ struct HomeView: View {
                     withAnimation(reduceMotion ? nil : .spring(response: 0.42, dampingFraction: 0.82)) {
                         selectedPrayerID = prayer.id
                     }
-                    presentedPrayer = prayer
                 } label: {
                     PrayerRow(
                         prayer: prayer,
                         isSelected: selectedPrayerID == prayer.id,
                         height: metrics.rowHeight,
-                        fontSize: min(rowTextSize * settings.textScale, metrics.rowHeight * 0.5)
+                        fontSize: min(rowTextSize * settings.textScale, metrics.rowHeight * 0.5),
+                        namespace: prayerGlassNamespace
                     )
-                        .modifier(PrayerGlassSurface(
-                            style: settings.prayerGlassStyle,
-                            isSelected: selectedPrayerID == prayer.id,
-                            prayerID: prayer.id,
-                            namespace: prayerGlassNamespace
-                        ))
                 }
                 .buttonStyle(.plain)
                 .accessibilityAddTraits(selectedPrayerID == prayer.id ? .isSelected : [])
-                .accessibilityHint("عرض تفاصيل " + prayer.name)
+                .accessibilityHint("تحديد " + prayer.name)
             }
         }
     }
@@ -144,6 +113,7 @@ struct PrayerRow: View {
     let isSelected: Bool
     let height: CGFloat
     let fontSize: CGFloat
+    let namespace: Namespace.ID
 
     var body: some View {
         HStack(spacing: 12) {
@@ -157,11 +127,20 @@ struct PrayerRow: View {
                 .font(AfaqFont.hero(size: fontSize))
                 .monospacedDigit()
                 .fixedSize(horizontal: true, vertical: false)
+                .padding(.horizontal, 12)
+                .padding(.vertical, 5)
+                .frame(minWidth: 90)
+                .modifier(PrayerGlassSurface(
+                    style: settings.prayerGlassStyle,
+                    isSelected: isSelected,
+                    prayerID: prayer.id,
+                    namespace: namespace
+                ))
         }
         .padding(.horizontal, 18)
         .frame(maxWidth: .infinity)
         .frame(height: height)
-        .contentShape(Capsule())
+        .contentShape(Rectangle())
         .accessibilityElement(children: .combine)
         .accessibilityValue(prayer.isNext ? "الصلاة القادمة" : "")
     }
@@ -176,8 +155,8 @@ private struct HomeLayoutMetrics {
         rowHeight = min(52, max(44, height * 0.074))
         rowSpacing = min(10, max(6, height * 0.012))
         let scheduleHeight = CGFloat(prayerCount) * rowHeight + CGFloat(max(0, prayerCount - 1)) * rowSpacing
-        // Reserve room for all prayers and the footer before sizing the hero.
-        heroHeight = min(260, max(100, (height - scheduleHeight - 30) * 0.88))
+        // Keep all prayers on screen before sizing the hero.
+        heroHeight = min(260, max(100, (height - scheduleHeight) * 0.88))
     }
 }
 

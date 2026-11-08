@@ -139,6 +139,9 @@ private struct ScenePickerView: View {
                         .accessibilityAddTraits(settings.mood == mood ? .isSelected : [])
                     }
                 }
+                Text("التلقائي يغيّر المشهد حسب ساعة الجهاز. الحركة بصرية تقريبية، مستقلة عن حساب مواقيت الصلاة.")
+                    .font(AfaqFont.footnote)
+                    .foregroundStyle(.secondary)
             }
             .padding(24)
         }

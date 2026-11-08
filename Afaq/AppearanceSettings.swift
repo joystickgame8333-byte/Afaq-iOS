@@ -2,20 +2,28 @@ import Observation
 import SwiftUI
 
 enum SceneMood: String, CaseIterable, Identifiable {
-    case sunset, midnight, dawn
+    case automatic, dawn, sunrise, day, afternoon, sunset, midnight
     var id: String { rawValue }
     var title: String {
         switch self {
+        case .automatic: "تلقائي حسب الوقت"
         case .sunset: "الغروب"
         case .midnight: "الليل"
         case .dawn: "الفجر"
+        case .sunrise: "الشروق"
+        case .day: "النهار"
+        case .afternoon: "العصر"
         }
     }
     var symbol: String {
         switch self {
+        case .automatic: "clock"
         case .sunset: "sunset"
         case .midnight: "moon.stars"
-        case .dawn: "sunrise"
+        case .dawn: "sun.horizon"
+        case .sunrise: "sunrise"
+        case .day: "sun.max"
+        case .afternoon: "sun.haze"
         }
     }
 }
@@ -60,7 +68,10 @@ final class AppearanceSettings {
     init(defaults: UserDefaults = .standard) {
         self.defaults = defaults
         let hasLatinDigitsDefault = defaults.bool(forKey: "appearance.latinDigitsDefaultV1")
-        mood = SceneMood(rawValue: defaults.string(forKey: "appearance.mood") ?? "") ?? .sunset
+        let hasAutomaticScenes = defaults.bool(forKey: "appearance.automaticScenesV1")
+        mood = hasAutomaticScenes
+            ? (SceneMood(rawValue: defaults.string(forKey: "appearance.mood") ?? "") ?? .automatic)
+            : .automatic
         prayerGlassStyle = PrayerGlassStyle(rawValue: defaults.string(forKey: "appearance.prayerGlassStyle") ?? "") ?? .individual
         glassDensity = GlassDensity(rawValue: defaults.string(forKey: "appearance.glassDensity") ?? "") ?? .dense
         textScale = min(1.2, max(0.85, defaults.object(forKey: "appearance.textScale") as? Double ?? 1))
@@ -77,10 +88,14 @@ final class AppearanceSettings {
             defaults.set(false, forKey: "appearance.arabicDigits")
             defaults.set(true, forKey: "appearance.latinDigitsDefaultV1")
         }
+        if !hasAutomaticScenes {
+            defaults.set(SceneMood.automatic.rawValue, forKey: "appearance.mood")
+            defaults.set(true, forKey: "appearance.automaticScenesV1")
+        }
     }
 
     func reset() {
-        mood = .sunset
+        mood = .automatic
         prayerGlassStyle = .individual
         glassDensity = .dense
         textScale = 1
