@@ -123,6 +123,7 @@
                 ENABLE_PREVIEWS = YES;
                 GENERATE_INFOPLIST_FILE = YES;
                 INFOPLIST_KEY_CFBundleDisplayName = "أفق";
+                INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "نستخدم موقعك لاختيار أقرب مدينة وعرض مواقيت الصلاة الخاصة بها.";
                 INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.lifestyle";
                 INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
                 INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
@@ -150,6 +151,7 @@
                 CURRENT_PROJECT_VERSION = 1;
                 GENERATE_INFOPLIST_FILE = YES;
                 INFOPLIST_KEY_CFBundleDisplayName = "أفق";
+                INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "نستخدم موقعك لاختيار أقرب مدينة وعرض مواقيت الصلاة الخاصة بها.";
                 INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.lifestyle";
                 INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
                 INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;

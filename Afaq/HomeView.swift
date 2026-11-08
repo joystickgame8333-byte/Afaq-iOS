@@ -2,6 +2,7 @@ import SwiftUI
 
 struct HomeView: View {
     @Environment(AppearanceSettings.self) private var settings
+    @Environment(PrayerScheduleStore.self) private var liveSchedule
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var selectedPrayerID = "maghrib"
     @Namespace private var prayerGlassNamespace
@@ -9,18 +10,19 @@ struct HomeView: View {
     @ScaledMetric(relativeTo: .largeTitle) private var countdownSize = 62
     @ScaledMetric(relativeTo: .body) private var rowTextSize = 17
 
-    private var prayers: [PreviewPrayer] {
-        PreviewPrayer.day.filter { settings.showSunrise || $0.id != "sunrise" }
-    }
-
     var body: some View {
+        TimelineView(.periodic(from: .now, by: 1)) { context in
+        let snapshot = liveSchedule.snapshot(at: context.date)
+        let prayers = snapshot.rows.map { item in
+            PreviewPrayer(id: item.key.rawValue, name: item.key.title, hour: item.hour, minute: item.minute, symbol: "", isNext: item.key == snapshot.next?.key)
+        }.filter { settings.showSunrise || $0.id != "sunrise" }
         GeometryReader { geometry in
             let metrics = HomeLayoutMetrics(height: max(1, geometry.size.height - 16), prayerCount: prayers.count)
             VStack(spacing: 0) {
-                hero(height: metrics.heroHeight)
+                hero(height: metrics.heroHeight, snapshot: snapshot, now: context.date)
                     .frame(height: metrics.heroHeight)
                 Spacer(minLength: 0)
-                schedule(metrics: metrics)
+                schedule(metrics: metrics, prayers: prayers)
             }
             .frame(maxWidth: 600, maxHeight: .infinity)
             .frame(maxWidth: .infinity)
@@ -31,6 +33,7 @@ struct HomeView: View {
             .background { AtmosphereView() }
             .foregroundStyle(.white)
         }
+        }
         .toolbar(.hidden, for: .navigationBar)
         .onChange(of: settings.showSunrise) { _, isVisible in
             if !isVisible && selectedPrayerID == "sunrise" {
@@ -39,22 +42,22 @@ struct HomeView: View {
         }
     }
 
-    private func hero(height: CGFloat) -> some View {
+    private func hero(height: CGFloat, snapshot: PrayerSnapshot, now: Date) -> some View {
         VStack(spacing: min(6, height * 0.02)) {
-            Text("الصلاة القادمة")
+            Text(snapshot.isTomorrow ? "الصلاة القادمة · غدًا" : "الصلاة القادمة")
                 .font(AfaqFont.hero(size: min(15, height * 0.07)))
                 .lineLimit(1)
                 .foregroundStyle(.white.opacity(0.75))
-            Text("المغرب")
+            Text(snapshot.next?.key.title ?? "المواقيت غير متاحة")
                 .font(AfaqFont.hero(size: min(prayerNameSize * settings.textScale, height * 0.22), weight: .medium))
                 .minimumScaleFactor(0.65)
                 .lineLimit(1)
             ViewThatFits(in: .horizontal) {
-                countdown(size: min(countdownSize * settings.textScale, height * 0.24))
-                countdown(size: min(countdownSize * settings.textScale, height * 0.24) * 0.74)
+                countdown(size: min(countdownSize * settings.textScale, height * 0.24), next: snapshot.next, now: now)
+                countdown(size: min(countdownSize * settings.textScale, height * 0.24) * 0.74, next: snapshot.next, now: now)
             }
-            .accessibilityLabel(settings.showSeconds ? "عد تنازلي توضيحي: 24 دقيقة و18 ثانية" : "عد تنازلي توضيحي: 24 دقيقة")
-            Text("حتى الأذان · " + settings.time(hour: 17, minute: 12))
+            .accessibilityLabel("المتبقي حتى الصلاة")
+            Text(snapshot.next.map { "حتى الأذان · " + settings.time(hour: $0.hour, minute: $0.minute) } ?? "تحقق من التقويم في الإعدادات")
                 .font(AfaqFont.hero(size: min(15, height * 0.07)))
                 .lineLimit(1)
                 .minimumScaleFactor(0.8)
@@ -64,26 +67,26 @@ struct HomeView: View {
         .accessibilityElement(children: .combine)
     }
 
-    private func countdown(size: CGFloat) -> some View {
-        Text(settings.digits(settings.showSeconds ? "00:24:18" : "00:24"))
+    private func countdown(size: CGFloat, next: ScheduledPrayer?, now: Date) -> some View {
+        Text(settings.digits(next.map { PrayerCalendarEngine.countdown(until: $0.date, now: now, seconds: settings.showSeconds) } ?? "--:--"))
             .font(AfaqFont.hero(size: size))
             .monospacedDigit()
             .environment(\.layoutDirection, .leftToRight)
             .lineLimit(1)
     }
 
-    @ViewBuilder private func schedule(metrics: HomeLayoutMetrics) -> some View {
+    @ViewBuilder private func schedule(metrics: HomeLayoutMetrics, prayers: [PreviewPrayer]) -> some View {
         if #available(iOS 26.0, *) {
             // Keep independent capsules separated while sharing one glass rendering container.
             GlassEffectContainer(spacing: 4) {
-                prayerRows(metrics: metrics)
+                prayerRows(metrics: metrics, prayers: prayers)
             }
         } else {
-            prayerRows(metrics: metrics)
+            prayerRows(metrics: metrics, prayers: prayers)
         }
     }
 
-    private func prayerRows(metrics: HomeLayoutMetrics) -> some View {
+    private func prayerRows(metrics: HomeLayoutMetrics, prayers: [PreviewPrayer]) -> some View {
         VStack(spacing: metrics.rowSpacing) {
             ForEach(prayers) { prayer in
                 Button {

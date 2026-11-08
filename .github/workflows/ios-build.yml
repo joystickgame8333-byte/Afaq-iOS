@@ -27,6 +27,11 @@ jobs:
           set -euo pipefail
           xcodebuild -version
           bash tools/prepare-assets.sh
+      - name: Verify prayer engine
+        run: |
+          set -euo pipefail
+          swiftc -swift-version 6 -parse-as-library Afaq/PrayerCalendarEngine.swift Afaq/PrayerCities.swift tools/PrayerEngineTests.swift -o /tmp/afaq-prayer-tests
+          /tmp/afaq-prayer-tests Afaq/PrayerCalendar/prayer-calendar-v1.json
       - name: Build iPhone package
         run: |
           set -euo pipefail
@@ -41,6 +46,7 @@ jobs:
           test -f build/package/Payload/Afaq.app/Assets.car
           test -f build/package/Payload/Afaq.app/ElMessiri-Variable.ttf
           test -f build/package/Payload/Afaq.app/default.metallib
+          find build/package/Payload/Afaq.app -name prayer-calendar-v1.json | grep -q .
           cd build/package
           zip -qry ../Afaq.ipa Payload
       - name: Build simulator preview
@@ -77,27 +83,21 @@ jobs:
           set -euo pipefail
           TAG="preview-$GITHUB_RUN_NUMBER"
           cat > build/release-notes.md <<'NOTES'
-          نسخة أفق الأولية — الواجهة والإعدادات فقط.
+          أفق — ربط مواقيت صلاتي.
 
-          تجربة الزجاج حول الوقت:
-          - خط المسيري للعناوين والمواقيت والإعدادات.
-          - أرقام 1234 افتراضيًا، بما فيها تحديث النسخة السابقة.
-          - الغلاف الزجاجي حول وقت الصلاة فقط؛ الاسم والأيقونة خارج الغلاف.
-          - نمطان لزجاج الأوقات من الإعدادات: كل الأوقات، أو الوقت المحدد.
-          - الرئيسية شاشة واحدة دون تمرير، مع رفع موضع الغروب فوق المواقيت.
-          - أيقونات زجاجية ملوّنة من الصورة المعتمدة نفسها.
-          - معاينة مباشرة في الإعدادات، وضبط حجم الخط والزجاج الخفيف أو الكثيف.
-          - رئيسية دون تاريخ أو زر إعدادات علوي أو عبارة معاينة؛ تبويب الإعدادات السفلي متاح.
-          - الضغط على الصلاة يغيّر التحديد فقط، دون فتح نافذة.
-          - مشهد تلقائي من الفجر إلى الليل، وشمس وهلال متحركان بحسب ساعة الجهاز، بحركة بصرية تقريبية.
+          - نفس التقويم السنوي المضمّن في تطبيق صلاتي، مع فروق المدن والتوقيت الصيفي Asia/Jerusalem.
+          - صلاة قادمة وعد تنازلي مباشر، وتبديل جدول الغد بعد العشاء.
+          - اختيار المدينة يدويًا أو تحديد أقرب مدينة بالموقع من الإعدادات؛ الافتراضي تل السبع.
+          - المواقيت متاحة دون إنترنت؛ تحديث التقويم من مصدر صلاتي عند توفر الاتصال.
+          - الحفاظ على المسيري والأرقام 1234 والزجاج حول وقت الصلاة والخلفيات المتغيّرة.
+          - الشروق يظهر في الجدول ولا يدخل في الصلاة القادمة. لا نافذة عند الضغط على الصلاة.
 
-          المواقيت والعد التنازلي بيانات عرض ثابتة، بدون حساب أو موقع أو أذان.
-          يتطلب iOS 18 أو أحدث. يظهر زجاج النظام الأصلي على iOS 26 أو أحدث.
-
-          Afaq.ipa ملف iPhone غير موقع، للتثبيت باستخدام طريقة التوقيع أو التثبيت الجانبي المعتادة لديك. ليس رابط TestFlight ولا يثبت بمجرد فتحه في Safari.
+          التنبيهات والأذان والقبلة لم تُفعّل في هذه الدفعة. معاينة المظهر داخل الإعدادات بأوقات توضيحية ثابتة.
+          يتطلب iOS 18 أو أحدث، مع زجاج النظام على iOS 26 أو أحدث.
+          ملف IPA غير موقّع، للتثبيت بالطريقة المعتادة لديك.
           NOTES
           gh release create "$TAG" build/Afaq.ipa \
-            --target "$GITHUB_SHA" --title "أفق — تجربة الواجهة $GITHUB_RUN_NUMBER" \
+            --target "$GITHUB_SHA" --title "أفق — مواقيت صلاتي $GITHUB_RUN_NUMBER" \
             --notes-file build/release-notes.md --prerelease
           if [ -f build/Afaq-home.png ] && [ -f build/Afaq-settings.png ]; then
             gh release upload "$TAG" build/Afaq-home.png build/Afaq-settings.png

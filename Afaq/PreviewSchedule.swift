@@ -1,13 +1,13 @@
 import Foundation
 
-// Fixed presentation fixtures. No date, location, prayer calculation or live countdown.
+// Shared row presentation model; fixed fixtures below are only for the appearance preview.
 struct PreviewPrayer: Identifiable {
     let id: String
     let name: String
     let hour: Int
     let minute: Int
     let symbol: String
-    var isNext: Bool { id == "maghrib" }
+    var isNext: Bool = false
 
     static let day: [PreviewPrayer] = [
         .init(id: "fajr", name: "الفجر", hour: 4, minute: 45, symbol: "sun.horizon"),

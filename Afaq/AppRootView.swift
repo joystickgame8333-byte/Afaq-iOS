@@ -30,6 +30,8 @@ struct AppRootView: View {
 #Preview("أفق — الرئيسية") {
     let _ = AfaqFont.register()
     AppRootView()
+        .environment(PrayerScheduleStore())
+        .environment(PrayerLocationService(schedule: PrayerScheduleStore()))
         .environment(AppearanceSettings(defaults: UserDefaults(suiteName: "Afaq.Preview")!))
         .environment(\.layoutDirection, .rightToLeft)
         .preferredColorScheme(.dark)

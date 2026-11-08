@@ -2,6 +2,7 @@ import SwiftUI
 
 struct SettingsView: View {
     @Environment(AppearanceSettings.self) private var settings
+    @Environment(PrayerScheduleStore.self) private var schedule
     @State private var showResetConfirmation = false
 
     var body: some View {
@@ -26,6 +27,22 @@ struct SettingsView: View {
                     }
                 }
                 .padding(.vertical, 7)
+            }
+
+            Section("المواقيت والموقع") {
+                NavigationLink {
+                    PrayerLocationSettingsView()
+                } label: {
+                    LabeledContent("المدينة والموقع", value: schedule.city.name)
+                }
+                LabeledContent("مصدر المواقيت", value: "تقويم صلاتي")
+                Button(schedule.refreshing ? "جارٍ التحديث…" : "تحديث التقويم") {
+                    Task { await schedule.refresh(force: true) }
+                }
+                .disabled(schedule.refreshing)
+                if !schedule.refreshMessage.isEmpty {
+                    Text(schedule.refreshMessage).font(AfaqFont.footnote).foregroundStyle(.secondary)
+                }
             }
 
             Section("المظهر") {
@@ -80,7 +97,7 @@ struct SettingsView: View {
             }
 
             Section {
-                LabeledContent("المرحلة الحالية", value: "الواجهة والإعدادات")
+                LabeledContent("المرحلة الحالية", value: "المواقيت المباشرة")
                 LabeledContent("الإصدار", value: "0.1")
                 NavigationLink("عن أفق") {
                     AboutView()
@@ -88,7 +105,7 @@ struct SettingsView: View {
             } header: {
                 Text("عن التطبيق")
             } footer: {
-                Text("المواقيت والعد التنازلي بيانات عرض ثابتة. خياراتك تُحفظ على هذا الجهاز.")
+                Text("المواقيت تعمل دون إنترنت، مع تحديث التقويم عند توفر اتصال. معاينة المظهر بالأعلى تستخدم أوقاتًا توضيحية ثابتة.")
             }
 
             Section {
@@ -157,9 +174,10 @@ private struct AboutView: View {
                 Text("أفق").font(AfaqFont.largeTitle.weight(.medium))
                 Text("واجهة عربية لمواقيت الصلاة، مستوحاة من هدوء الأفق وتغيّر الضوء.")
             }
-            Section("نسخة التصميم") {
-                Text("هذه النسخة لتجربة الواجهة والإعدادات. المواقيت توضيحية والعد التنازلي ثابت.")
-                Text("حساب الصلاة، الموقع، الأذان، والقبلة تُضاف في مراحل لاحقة.")
+            Section("المواقيت") {
+                Text("نفس تقويم صلاتي السنوي: توقيت القدس الشتوي مع فرق المدينة والتوقيت الصيفي حسب Asia/Jerusalem. يُعرض جدول الغد بعد العشاء.")
+                Text("التنبيهات والأذان والقبلة لم تُفعّل في هذه المرحلة.")
+                Link("مصدر التقويم: دار الإفتاء الفلسطينية", destination: URL(string: "https://darifta.ps/press/ssalahtime/ssalah2012.pdf")!)
             }
         }
         .navigationTitle("عن أفق")
